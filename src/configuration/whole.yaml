@@ -1,0 +1,17 @@
+_BASE_: frozen4down.yaml
+
+MODEL:
+  NAME: WholePipeline
+  # NOTE: All below FINETUNE should be True!
+
+  MOL1D:
+    FINETUNE: True
+
+  MOL3D:
+    FINETUNE: True
+
+  PROT1D:
+    FINETUNE: True
+
+  PROT3D:
+    FINETUNE: True

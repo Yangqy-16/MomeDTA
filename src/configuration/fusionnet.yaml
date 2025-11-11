@@ -1,0 +1,116 @@
+# _BASE_: frozen4down.yaml
+
+DATALOADER:
+  PIN_MEMORY: True
+  DROP_LAST: True
+  PERSISTENT_WORKERS: True
+
+  TRAIN:
+    BATCH_SIZE: 16
+    NUM_WORKERS: 8
+
+  VAL:
+    BATCH_SIZE: 0  # If 0, it will be the same as TRAIN.BATCH_SIZE
+    NUM_WORKERS: 0 # If 0, it will be the same as TRAIN.NUM_WORKERS
+
+  TEST:
+    BATCH_SIZE: 0  # If 0, it will be the same as TRAIN.BATCH_SIZE
+    NUM_WORKERS: 0 # If 0, it will be the same as TRAIN.NUM_WORKERS
+
+DATASET:
+  NAME: PerAtomEmbedDataset
+
+  ROOT: /data/qingyuyang/dta_ours/data
+  DS: null
+  SETTING: null
+  FOLD: null
+  # TRAIN_DF: /data/qingyuyang/dta_ours/data/davis/splits/warm/fold_1_train.csv
+  # VAL_DF: /data/qingyuyang/dta_ours/data/davis/splits/warm/fold_1_valid.csv
+  # TEST_DF: /data/qingyuyang/dta_ours/data/davis/splits/warm/fold_1_test.csv
+  # DATA_PATH: /data/qingyuyang/dta_ours/data/davis
+  
+  DRUG_MAX_LEN: 300
+  PROT_MAX_LEN: 1000
+
+MODEL:
+  NAME: MomeDTA
+
+  # LLM
+  USE_1D: True
+  DRUG_1D_MODEL: selformer
+  DRUG_1D_DIM: 768
+  PROT_1D_MODEL: esm2
+  PROT_1D_DIM: 1280
+  USE_2D: True
+  DRUG_2D_MODEL: molclr
+  DRUG_2D_DIM: 300
+  PROT_2D_MODEL: gearnet
+  PROT_2D_DIM: 3072
+  USE_3D: True
+  DRUG_3D_MODEL: unimol
+  DRUG_3D_DIM: 512
+  PROT_3D_MODEL: saprot
+  PROT_3D_DIM: 1280
+
+  # Encoder / Downsample
+  ENCODER: 1d-cnn  # linear, , ds-cnn
+  PROJECTION_DIM: 128
+
+  ADD_POOL: True
+
+  # Fusion
+  FUSION: BAN  # CAN, BAN, MAN, MANnew, BCA
+  PREDICT: False  # True if model is 'MoE'
+
+MODULE:
+  NAME: FusionModule
+  COMPILE: False
+
+  OPTIMIZER:
+    NAME: Adam
+    LR: 0.00005
+    BETA1: 0.9
+    BETA2: 0.99
+    WEIGHT_DECAY: 0.00001
+
+  SCHEDULER:
+    NAME: ReduceLROnPlateau
+
+    # LinearWarmupCosineAnnealingLR
+    WARMUP_START_LR: 0.00001
+    WARMUP_EPOCH: 10
+    MIN_LR: 0.00001
+
+    # ReduceLROnPlateau
+    FACTOR: 0.2
+    PATIENCE: 20
+
+TRAINER:
+  STRATEGY: auto #deepspeed_stage_3        # Options: `auto`, `ddp`, `deepspeed_stage_2`, `deepspeed_stage_3` ...
+  PRECISION: 32-true    # Options: `16-true`, `16-mixed`, `bf16-true`, `bf16-mixed`, `32-true`, `64-true`
+
+  CHECKPOINT:
+    EVERY_N_EPOCHS: 1
+    SAVE_BEST: True     # If True, monitor will be required
+    MONITOR: mse
+    MONITOR_MODE: min   # `min` only if 'loss' or 'mse'
+
+  MAX_EPOCHS: 500        # If profiler is enabled, this will be *automatically* set to 1
+  NUM_SANITY_VAL_STEPS: 0
+  LOG_EVERY_N_STEPS: 100
+  ACCUMULATE_GRAD_BATCHES: 1
+
+  CLIP_GRAD:
+    ALGORITHM: null #norm
+    VALUE: null #1.0
+
+  PATIENCE: 50
+
+  DETERMINISTIC: False  # Set to True to enable cudnn.deterministic
+  BENCHMARK: False      # Set to True to enable cudnn.benchmark
+  PROFILER: null        # Set to `advanced` or `pytorch` to enable profiling
+  DETECT_ANOMALY: False # Set to True to enable anomaly detection
+  SYNC_BATCHNORM: False # Set to True to enable sync batchnorm
+
+SEED: 42
+OUTPUT_DIR: null #/home/qingyuyang/test/output/davis/warm_fold1/1d2d3d_CAN_FusionPooler_infonce_1dcnn_5e-5_pool_yqy

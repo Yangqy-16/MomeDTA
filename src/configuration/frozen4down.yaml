@@ -1,0 +1,99 @@
+_BASE_: lora_setting.yaml
+
+DATALOADER:
+  PIN_MEMORY: True
+  DROP_LAST: True
+  PERSISTENT_WORKERS: True
+
+  TRAIN:
+    BATCH_SIZE: 32
+    NUM_WORKERS: 8
+
+  VAL:
+    BATCH_SIZE: 0  # If 0, it will be the same as TRAIN.BATCH_SIZE
+    NUM_WORKERS: 0 # If 0, it will be the same as TRAIN.NUM_WORKERS
+
+  TEST:
+    BATCH_SIZE: 0  # If 0, it will be the same as TRAIN.BATCH_SIZE
+    NUM_WORKERS: 0 # If 0, it will be the same as TRAIN.NUM_WORKERS
+
+DATASET:
+  NAME: DTADataset
+
+  TAG: kiba
+  DF: /data/qingyuyang/dta_ours/data/kiba/data.csv
+  FOLD: 0
+  DATA_PATH: /data/qingyuyang/dta_ours/data/kiba
+  
+  MOL_MAX_LEN: 100
+  PROT_MAX_LEN: 1000
+
+MODEL:
+  NAME: Frozen4Downstream  # DownstreamNet, WholePipeline, Frozen4Downstream
+  # NOTE: If DownstreamNet or Frozen4Downstream, all below FINETUNE must be False!
+
+  USE_1D_MODELS: True  # 设置为 false 时不使用 1D 模型
+
+  MOL1D:
+    FINETUNE: False
+
+  MOL3D:
+    FINETUNE: False
+
+  PROT1D:
+    FINETUNE: False
+
+  PROT3D:
+    FINETUNE: False
+
+  PROJECTION_DIM: 256
+  ACTIVATION_FN: relu
+  MODAL_NUM: 2
+  FUSION_WEIGHT: 1.0
+
+MODULE:
+  NAME: DownstreamModule
+  COMPILE: False
+
+  OPTIMIZER:
+    NAME: Adam
+    LR: 0.0001
+    BETA1: 0.9
+    BETA2: 0.99
+    WEIGHT_DECAY: 0.00001
+
+  SCHEDULER:
+    NAME: LinearWarmupCosineAnnealingLR
+    WARMUP_EPOCH: 10
+    MIN_LR: 0.00001
+    WARMUP_START_LR: 0.0001
+
+TRAINER:
+  STRATEGY: deepspeed_stage_3        # Options: `auto`, `ddp`, `deepspeed_stage_2`, `deepspeed_stage_3` ...
+  PRECISION: 16-mixed    # Options: `16-true`, `16-mixed`, `bf16-true`, `bf16-mixed`, `32-true`, `64-true`
+
+  CHECKPOINT:
+    EVERY_N_EPOCHS: 1
+    SAVE_BEST: True     # If True, monitor will be required
+    MONITOR: mse
+    MONITOR_MODE: min   # `min` only if 'loss' or 'mse'
+
+  MAX_EPOCHS: 200        # If profiler is enabled, this will be *automatically* set to 1
+  NUM_SANITY_VAL_STEPS: 0
+  LOG_EVERY_N_STEPS: 300
+  ACCUMULATE_GRAD_BATCHES: 1
+
+  CLIP_GRAD:
+    ALGORITHM: norm
+    VALUE: 1.0
+
+  PATIENCE: 50
+
+  DETERMINISTIC: False  # Set to True to enable cudnn.deterministic
+  BENCHMARK: False      # Set to True to enable cudnn.benchmark
+  PROFILER: null        # Set to `advanced` or `pytorch` to enable profiling
+  DETECT_ANOMALY: False # Set to True to enable anomaly detection
+  SYNC_BATCHNORM: False # Set to True to enable sync batchnorm
+
+SEED: 42
+OUTPUT_DIR: null

@@ -1,0 +1,27 @@
+MODEL:
+  MOL1D:
+    PATH: /data/qingyuyang/dta_ours/weights/selformer
+
+    NUM_LORA_LAYERS: 1
+    LORA_R: 8
+    LORA_ALPHA: 16
+    LORA_DROPOUT: 0.1
+  
+  MOL3D:
+    PATH: /data/qingyuyang/dta_ours/weights/unimol
+  
+  PROT1D:
+    PATH: /data/qingyuyang/dta_ours/weights/esm2
+
+    NUM_LORA_LAYERS: 1
+    LORA_R: 8
+    LORA_ALPHA: 16
+    LORA_DROPOUT: 0.1
+  
+  PROT3D:
+    PATH: /data/qingyuyang/dta_ours/weights/saprot
+
+    NUM_LORA_LAYERS: 1
+    LORA_R: 8
+    LORA_ALPHA: 16
+    LORA_DROPOUT: 0.1

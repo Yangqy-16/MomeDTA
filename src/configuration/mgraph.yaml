@@ -1,0 +1,51 @@
+_BASE_: fusionnet.yaml
+
+DATALOADER:
+  TRAIN:
+    BATCH_SIZE: 16
+    NUM_WORKERS: 8
+
+MODEL:
+  NAME: GraphNet
+
+  # LLM
+  USE_1D: False
+  
+  USE_2D: True
+  DRUG_2D_MODEL: null #molclr
+  DRUG_2D_DIM: null #300
+  PROT_2D_MODEL: null #gearnet
+  PROT_2D_DIM: null #3072
+
+  USE_3D: False
+
+  # Encoder / Downsample
+  ENCODER: 1d-cnn  # linear, , ds-cnn
+  PROJECTION_DIM: 128
+
+  ADD_POOL: True
+
+  # Fusion
+  FUSION: null  # CAN, BAN, MAN, MANnew, BCA
+  PREDICT: False
+
+MODULE:
+  NAME: FusionModule
+  COMPILE: False
+
+  OPTIMIZER:
+    NAME: Adam
+    LR: 0.00005
+
+  SCHEDULER:
+    NAME: ReduceLROnPlateau
+
+    # ReduceLROnPlateau
+    FACTOR: 0.2
+    PATIENCE: 100
+
+TRAINER:
+  MAX_EPOCHS: 3000        # If profiler is enabled, this will be *automatically* set to 1
+  LOG_EVERY_N_STEPS: 100
+
+  PATIENCE: 400

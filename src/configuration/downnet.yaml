@@ -1,0 +1,4 @@
+_BASE_: frozen4down.yaml
+
+MODEL:
+  NAME: DownstreamNet
