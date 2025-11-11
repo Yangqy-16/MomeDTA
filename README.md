@@ -20,7 +20,7 @@ You can train the model by
 ```
 python script/momedta.py
 ```
-After the program finishes, you can see the outputs in `output/`.
+After the program finishes, you can see the outputs in the directory you set (see line 55 in `script/momedta.py`).
 
 If you want to resume from a previously trained model, please refer to `script/resume.sh`.
 

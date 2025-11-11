@@ -52,6 +52,6 @@ call([
     'MODEL.FUSION', fusion,
     'MODULE.OPTIMIZER.LR', lr,
     'TRAINER.LOG_EVERY_N_STEPS', str(log_step),
-    'OUTPUT_DIR', f'/data/qingyuyang/dta_ours/output/{dataset}/{setting}_fold{fold}/rv_new_moe_fullemb_{out_dir_modal}_{fusion}_{bs}_{lr}', #_{encoder}_{out_dir_pool}
+    'OUTPUT_DIR', f'/data/qingyuyang/dta_ours/output/{dataset}/{setting}_fold{fold}/momedta_{out_dir_modal}_{fusion}_{bs}_{lr}', #_{encoder}_{out_dir_pool}
     'SEED', '42'
 ])
