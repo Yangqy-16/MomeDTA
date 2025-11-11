@@ -18,7 +18,7 @@ Please refer to `preprocess/README.md`.
 ### Training
 You can train the model by 
 ```
-python script/moe.py
+python script/momedta.py
 ```
 After the program finishes, you can see the outputs in `output/`.
 
