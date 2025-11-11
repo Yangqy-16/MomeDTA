@@ -3,7 +3,7 @@ import os
 
 ###### NOTE: Set params here! ######
 dataset = 'davis'
-setting = 'novel_pair'
+setting = 'warm'
 fold = 0
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '1'
@@ -16,7 +16,10 @@ encoder = '1d-cnn'
 add_pool = 'true'
 fusion = 'MANnew'
 
+bs = '16'
 lr = '0.0001'
+
+log_step = 100 if dataset == 'davis' else 400
 ####################################
 
 out_dir_modal = ''
@@ -27,18 +30,20 @@ if use_2d == 'true':
 if use_3d == 'true':
     out_dir_modal += '3d'
 
+model_name = 'MoE'
+if (use_1d == 'true') + (use_2d == 'true') + (use_3d == 'true') <= 1:
+    model_name = 'Ablation'
+
 out_dir_pool = 'pool' if add_pool == 'true' else ''
 
 call([
     'python', 'train.py',
-    '--config-file', 'src/configuration/fusionnet.yaml',
+    '--config-file', 'src/configuration/momedta.yaml',
+    'MODEL.NAME', model_name,
     'DATASET.DS', dataset,
     'DATASET.SETTING', setting,
     'DATASET.FOLD', str(fold),
-    # 'DATASET.TRAIN_DF', f'/data/qingyuyang/dta_ours/data/{dataset}/splits/{setting}/fold_{fold}_train.csv',
-    # 'DATASET.VAL_DF', f'/data/qingyuyang/dta_ours/data/{dataset}/splits/{setting}/fold_{fold}_valid.csv',
-    # 'DATASET.TEST_DF', f'/data/qingyuyang/dta_ours/data/{dataset}/splits/{setting}/fold_{fold}_test.csv',
-    # 'DATASET.DATA_PATH', f'/data/qingyuyang/dta_ours/data/{dataset}',
+    'DATALOADER.TRAIN.BATCH_SIZE', str(bs),
     'MODEL.USE_1D', use_1d,
     'MODEL.USE_2D', use_2d,
     'MODEL.USE_3D', use_3d,
@@ -46,6 +51,7 @@ call([
     'MODEL.ADD_POOL', add_pool,
     'MODEL.FUSION', fusion,
     'MODULE.OPTIMIZER.LR', lr,
-    'OUTPUT_DIR', f'/home/qingyuyang/test/output/{dataset}/{setting}_fold{fold}/{out_dir_modal}_{fusion}_{encoder}_{lr}_{out_dir_pool}',
+    'TRAINER.LOG_EVERY_N_STEPS', str(log_step),
+    'OUTPUT_DIR', f'/data/qingyuyang/dta_ours/output/{dataset}/{setting}_fold{fold}/rv_new_moe_fullemb_{out_dir_modal}_{fusion}_{bs}_{lr}', #_{encoder}_{out_dir_pool}
     'SEED', '42'
 ])

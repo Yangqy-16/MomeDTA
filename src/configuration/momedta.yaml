@@ -1,5 +1,3 @@
-# _BASE_: frozen4down.yaml
-
 DATALOADER:
   PIN_MEMORY: True
   DROP_LAST: True
@@ -33,7 +31,7 @@ DATASET:
   PROT_MAX_LEN: 1000
 
 MODEL:
-  NAME: MomeDTA
+  NAME: MoE
 
   # LLM
   USE_1D: True
@@ -42,10 +40,10 @@ MODEL:
   PROT_1D_MODEL: esm2
   PROT_1D_DIM: 1280
   USE_2D: True
-  DRUG_2D_MODEL: molclr
-  DRUG_2D_DIM: 300
-  PROT_2D_MODEL: gearnet
-  PROT_2D_DIM: 3072
+  DRUG_2D_MODEL: null
+  DRUG_2D_DIM: null
+  PROT_2D_MODEL: null
+  PROT_2D_DIM: null
   USE_3D: True
   DRUG_3D_MODEL: unimol
   DRUG_3D_DIM: 512
@@ -59,7 +57,7 @@ MODEL:
   ADD_POOL: True
 
   # Fusion
-  FUSION: BAN  # CAN, BAN, MAN, MANnew, BCA
+  FUSION: MANnew  # CAN, BAN, MAN, MANnew, BCA
   PREDICT: False  # True if model is 'MoE'
 
 MODULE:
@@ -83,7 +81,7 @@ MODULE:
 
     # ReduceLROnPlateau
     FACTOR: 0.2
-    PATIENCE: 20
+    PATIENCE: 30
 
 TRAINER:
   STRATEGY: auto #deepspeed_stage_3        # Options: `auto`, `ddp`, `deepspeed_stage_2`, `deepspeed_stage_3` ...
@@ -95,16 +93,16 @@ TRAINER:
     MONITOR: mse
     MONITOR_MODE: min   # `min` only if 'loss' or 'mse'
 
-  MAX_EPOCHS: 500        # If profiler is enabled, this will be *automatically* set to 1
+  MAX_EPOCHS: 1000        # If profiler is enabled, this will be *automatically* set to 1
   NUM_SANITY_VAL_STEPS: 0
-  LOG_EVERY_N_STEPS: 100
+  LOG_EVERY_N_STEPS: 400
   ACCUMULATE_GRAD_BATCHES: 1
 
   CLIP_GRAD:
     ALGORITHM: null #norm
     VALUE: null #1.0
 
-  PATIENCE: 50
+  PATIENCE: 60
 
   DETERMINISTIC: False  # Set to True to enable cudnn.deterministic
   BENCHMARK: False      # Set to True to enable cudnn.benchmark

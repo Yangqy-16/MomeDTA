@@ -1,5 +1,4 @@
 from .dataset import *
-from .graphds import seqs2int
 import numpy as np
 from torch_geometric import data as DATA
 from torch_geometric.data import Batch
@@ -40,15 +39,6 @@ class CollateBatch():
     def __call__(self,
         batch: list[tuple[SeqType, ValidType, SeqType, SeqType, float, str, str]]
     ) -> tuple[dict[str, Tensor], Tensor, list[str], list[str]]:
-        """
-        Works when any of the LLMs are frozen or unfrozen.
-
-        When an LLM is frozen, its input track of this function should be
-        a Tensor which is its last hidden state (output embedding).
-
-        When an LLM is unfrozen, its input track of this function should be
-        either a dictionary (UniMol) or a sequence (others).
-        """
         drug1d, drug2d, drug3d, prot1d, prot2d, prot3d, y, drug_id, prot_id = zip(*batch)
 
         data_dict = {}
@@ -109,15 +99,6 @@ class PerAtomEmbedDataset(DTADataset):
             if self.cfg.MODEL.PROT_2D_MODEL:
                 prot2d = torch.load(f"{self.data_path}/embed/{self.cfg.MODEL.PROT_2D_MODEL}/{prot_id}.pt", weights_only=True)  # [seq_len, 3072]
             else:
-                # seq = self.prots[self.prots['prot_id'] == prot_id]['prot_seq'].item()
-                # prot2d = seqs2int(seq)
-
-                # prot_max_len = self.cfg.DATASET.PROT_MAX_LEN
-                # if len(prot2d) < prot_max_len:
-                #     prot2d = np.pad(prot2d, (0, prot_max_len - len(prot2d)))
-                # else:
-                #     prot2d = prot2d[:prot_max_len]
-                # prot2d = torch.tensor(prot2d)
                 prot2d = self.prot_graphs[prot_id]
         
         if self.cfg.MODEL.USE_3D:
