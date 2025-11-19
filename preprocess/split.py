@@ -12,7 +12,7 @@ cur_data = args.root  # NOTE: Change to your dir
 
 df_drugs = pd.read_csv(f'{cur_data}/drugs.csv').sample(frac=1, replace=False, random_state=42)
 df_prots = pd.read_csv(f'{cur_data}/prots.csv').sample(frac=1, replace=False, random_state=42)
-df_pairs = pd.read_csv(f'{cur_data}/pairs.csv')
+df_pairs = pd.read_csv(f'{cur_data}/pairs.csv').sample(frac=1, replace=False, random_state=42)
 
 print('############################## warm ##############################')
 path = f'{cur_data}/splits/warm'

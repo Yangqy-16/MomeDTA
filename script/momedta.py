@@ -2,11 +2,11 @@ from subprocess import call
 import os
 
 ###### NOTE: Set params here! ######
-dataset = 'davis'
+dataset = 'metz'
 setting = 'warm'
 fold = 0
 
-os.environ['CUDA_VISIBLE_DEVICES'] = '1'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 use_1d = 'true'
 use_2d = 'true'

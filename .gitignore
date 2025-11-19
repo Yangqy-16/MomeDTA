@@ -3,10 +3,16 @@
 data
 weights
 output
+
 preprocess/bin/foldseek
-preprocess/unimol_mol_repr_demo.ipynb
 preprocess/*.ipynb
 preprocess/molclr
+preprocess/step2.1.py
+preprocess/molclr_rep.py
+preprocess/gearnet_rep.py
+preprocess/load_pretrain.py
+preprocess/mmsg.py
+
 *.pkl
 *old*
 .vscode
@@ -18,10 +24,9 @@ script/*
 src/configuration/*
 !/src/configuration/momedta.yaml
 
-src/dataset/*
-!/src/dataset/__init__.py
-!/src/dataset/dataset.py
-!/src/dataset/peratomemb.py
+src/dataset/finetune.py
+src/dataset/perseqemb.py
+src/dataset/rawseq.py
 
 src/model/*
 !/src/model/__init__.py

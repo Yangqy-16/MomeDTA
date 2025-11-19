@@ -21,7 +21,7 @@ Then, you can refer to `step1.py` to process the data. After that, we expect all
 - `prots.csv`\
   [`prot_id`, `prot_seq`, `pdb`]
 
-  where `pdb` is the path to the PDB file (predicted by [AlphaFold2](https://github.com/google-deepmind/alphafold)), and the structures of all the proteins in the datasets we used can be find in [this link](tbd);
+  where `pdb` is the path to the PDB file (predicted by [AlphaFold2](https://github.com/google-deepmind/alphafold));
 
 - `pairs.csv`\
   [`index`, `drug_id`, `prot_id`, `affinity`]
@@ -36,8 +36,6 @@ Run `step2.py`. After that, we expect all the data should have the following for
 
 - `drugs.csv`\
   [`drug_id`, `iso_smiles`, `selfies`] 
-  
-  also need `can_smiles` if you want to run [DeepDTAGen](https://github.com/CSUBioGroup/DeepDTAGen);
 
 - `prots.csv`\
   [`prot_id`, `prot_seq`, `pdb`, `sa_seq`]
@@ -52,11 +50,9 @@ Run `step2.py`. After that, we expect all the data should have the following for
 Next, please run:
 
 1. `selformer_rep.py` to generate [SELFormer](https://github.com/hubiodatalab/selformer) embeddings;
-2. `molclr_rep.py` to generate [MolCLR](https://github.com/yuyangw/MolCLR) embeddings;
-3. `unimol_conf.py`and `unimol_infer.py` sequentially to generate [Uni-Mol](https://github.com/deepmodeling/Uni-Mol) embeddings;
-4. `esm2_rep.py` to generate [ESM-2](https://github.com/facebookresearch/esm) embeddings;
-5. `gearnet_rep.py` to generate [GearNet](https://github.com/DeepGraphLearning/GearNet) embeddings;
-6. `saprot_rep.py` to generate [SaProt](https://github.com/westlake-repl/SaProt) embeddings.
+2. `unimol_conf.py`and `unimol_infer.py` sequentially to generate [Uni-Mol](https://github.com/deepmodeling/Uni-Mol) embeddings;
+3. `esm2_rep.py` to generate [ESM-2](https://github.com/facebookresearch/esm) embeddings;
+4. `saprot_rep.py` to generate [SaProt](https://github.com/westlake-repl/SaProt) embeddings.
 
 After all of the above, you will get:
 
@@ -64,16 +60,10 @@ After all of the above, you will get:
   - `selformer/`
     - <drug_id>.pt
     - ...
-  - `molclr/`
-    - <drug_id>.pt
-    - ...
   - `unimol/`
     - <drug_id>.pt
     - ...
   - `esm2/`
-    - <prot_id>.pt
-    - ...
-  - `gearnet/`
     - <prot_id>.pt
     - ...
   - `saprot/`
@@ -86,7 +76,9 @@ After all of the above, you will get:
 
 ## Train-Val-Test Split
 
-Finally, you can run `split.py` (following [LLMDTA](https://github.com/Chris-Tang6/LLMDTA)) to split the data into different sets, in the form of:
+To split the dataset into different sets, please first run `cluster.py` to cluster the drugs and proteins.
+
+Then, run `split.py` to split the data into different sets, in the form of:
 
 - `splits/`
   - `warm/`
@@ -108,6 +100,12 @@ Finally, you can run `split.py` (following [LLMDTA](https://github.com/Chris-Tan
   - `novel_pair/`
     - ...
 
+## Generate Drug and Protein Graph
+
+Run `drug_graph.py` and `prot_graph.py`.
+
+## Final Directory Tree
+
 In the end, we expect the directory tree be like:
 
 - `data/`
@@ -119,8 +117,10 @@ In the end, we expect the directory tree be like:
       - ... (see above)
     - `splits/`
       - ... (see above)
+    - `drug_graphs.pkl`
+    - `prot_graphs.pkl`
   - `<dataset2>/`
     - ...
   - ...
 
-You can also modify these and change the corresponding paths in our programs.
+You can also modify these and change the corresponding paths in our code.

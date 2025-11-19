@@ -28,13 +28,11 @@ def iso2can(smiles: str) -> str:
 prots = pd.read_csv(f'{input_dir}/prots.csv')
 prots['sa_seq'] = None
 
-
 for i in tqdm(range(len(prots))):
-
     info = prots.iloc[i]
     pdb_fn = info['pdb'].split()[0] #f'{pdb_root}/{i}.pdb'
     seq = info['prot_seq']
-    sa_seqs = get_struc_seq("/home/qingyuyang/test/preprocess/bin/foldseek", pdb_fn)
+    sa_seqs = get_struc_seq("/home/qingyuyang/MomeDTA/preprocess/bin/foldseek", pdb_fn)
 
     # assert len(sa_seqs) == 1  # NOTE: all proteins are single chain
     if len(sa_seqs) == 0:
@@ -49,7 +47,7 @@ prots.dropna(inplace=True)
 new_len = len(prots)
 assert original_len == new_len
 prots.to_csv(f'{input_dir}/prots.csv', index=False)
-exit(0)
+
 drugs = pd.read_csv(f'{input_dir}/drugs.csv')
 pandarallel.initialize()
 drugs["selfies"] = drugs["iso_smiles"].copy()

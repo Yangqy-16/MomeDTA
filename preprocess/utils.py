@@ -9,7 +9,7 @@ import esm
 
 def parse_arguments() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--gpu", type=int, default=2)
+    parser.add_argument("--gpu", type=int, default=0)
     parser.add_argument("--bs", type=int, default=1)
     parser.add_argument("--root", type=Path)
     return parser.parse_args()
