@@ -1,6 +1,6 @@
 # MomeDTA
 
-This is the official repository of "MomeDTA: Improving Generalizability in Drug-Target Affinity Prediction by Mixture of Multi-view Experts" accepted by NeurIPS 2025 Workshop: MLSB.
+This is the official repository of "MomeDTA: Improving Generalizability in Drug-Target Affinity Prediction by Mixture of Multi-view Experts" accepted by MLSB Workshop (2025).
 
 ## Requirements
 
