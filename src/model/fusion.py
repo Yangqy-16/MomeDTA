@@ -2,11 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.nn.utils.weight_norm import weight_norm
-from einops import rearrange
-from torch import einsum
 
 
 class CAN_Layer(nn.Module):
+    """
+    https://github.com/ZhaohanM/FusionDTI/blob/main/utils/metric_learning_models.py
+    """
     def __init__(self, hidden_dim, num_heads, agg_mode='mean', group_size=1):
         super(CAN_Layer, self).__init__()
         self.agg_mode = agg_mode #args.
@@ -51,9 +52,6 @@ class CAN_Layer(nn.Module):
         protein_grouped, mask_prot_grouped = self.group_embeddings(protein, mask_prot, self.group_size)
         drug_grouped, mask_drug_grouped = self.group_embeddings(drug, mask_drug, self.group_size)
         
-        # print("protein_grouped:", protein_grouped.shape)
-        # print("mask_prot_grouped:", mask_prot_grouped.shape)
-
         # Compute queries, keys, values for both protein and drug after grouping
         query_prot = self.apply_heads(self.query_p(protein_grouped), self.num_heads, self.head_size)
         key_prot = self.apply_heads(self.key_p(protein_grouped), self.num_heads, self.head_size)
@@ -68,7 +66,6 @@ class CAN_Layer(nn.Module):
         logits_pd = torch.einsum('blhd, bkhd->blkh', query_prot, key_drug)
         logits_dp = torch.einsum('blhd, bkhd->blkh', query_drug, key_prot)
         logits_dd = torch.einsum('blhd, bkhd->blkh', query_drug, key_drug)
-        # print("logits_pp:", logits_pp.shape)
 
         alpha_pp = self.alpha_logits(logits_pp, mask_prot_grouped, mask_prot_grouped)
         alpha_pd = self.alpha_logits(logits_pd, mask_prot_grouped, mask_drug_grouped)
@@ -79,8 +76,6 @@ class CAN_Layer(nn.Module):
                    torch.einsum('blkh, bkhd->blhd', alpha_pd, value_drug).flatten(-2)) / 2
         drug_embedding = (torch.einsum('blkh, bkhd->blhd', alpha_dp, value_prot).flatten(-2) +
                    torch.einsum('blkh, bkhd->blhd', alpha_dd, value_drug).flatten(-2)) / 2
-        
-        # print("prot_embedding:", prot_embedding.shape)
         
         # Continue as usual with the aggregation mode
         if self.agg_mode == "cls":
@@ -95,15 +90,14 @@ class CAN_Layer(nn.Module):
         else:
             raise NotImplementedError()
             
-        # print("prot_embed:", prot_embed.shape)
-
         query_embed = torch.cat([prot_embed, drug_embed], dim=1)
-
-        # print("query_embed:", query_embed.shape)
         return query_embed
 
 
 class BANLayer(nn.Module):
+    """
+    https://github.com/peizhenbai/DrugBAN/blob/main/ban.py
+    """
     def __init__(self, v_dim, q_dim, h_dim, h_out, act='ReLU', dropout=0.2, k=3):
         super(BANLayer, self).__init__()
 
@@ -161,10 +155,10 @@ class BANLayer(nn.Module):
 
 
 class FCNet(nn.Module):
-    """Simple class for non-linear fully connect network
+    """
+    Simple class for non-linear fully connect network
     Modified from https://github.com/jnhwkim/ban-vqa/blob/master/fc.py
     """
-
     def __init__(self, dims, act='ReLU', dropout=0):
         super(FCNet, self).__init__()
 
@@ -190,6 +184,9 @@ class FCNet(nn.Module):
 
 
 class MAN(torch.nn.Module):
+    """
+    Modified from https://github.com/yydhYYDH/MutualDTA/blob/master/models/model.py
+    """
     def __init__(self, drug_hidden_dim: int = 128, protein_hidden_dim: int = 128):
         super(MAN, self).__init__()
         k, self.beta_p, self.beta_x = 64, 0.5, 0.99
@@ -221,14 +218,19 @@ class MAN(torch.nn.Module):
 
 
 class MANnew(nn.Module):
-    def __init__(self,
-                 drug_hidden_dim: int = 128,
-                 protein_hidden_dim: int = 128,
-                 k: int = 64,
-                 beta_p: float = 0.5,
-                 beta_x: float = 0.99,
-                 dropout_rate: float = 0.2,
-                 use_layernorm: bool = True):
+    """
+    Refined MAN with mask.
+    """
+    def __init__(
+        self,
+        drug_hidden_dim: int = 128,
+        protein_hidden_dim: int = 128,
+        k: int = 64,
+        beta_p: float = 0.5,
+        beta_x: float = 0.99,
+        dropout_rate: float = 0.2,
+        use_layernorm: bool = True
+    ):
         super(MANnew, self).__init__()
         self.k = k
         self.beta_p = beta_p
@@ -248,12 +250,13 @@ class MANnew(nn.Module):
             self.norm_c = nn.LayerNorm(drug_hidden_dim)
             self.norm_p = nn.LayerNorm(protein_hidden_dim)
 
-    def forward(self,
-                drug: torch.Tensor,           # (B, D, dim)
-                target: torch.Tensor,         # (B, L, dim)
-                drug_mask: torch.Tensor = None,   # (B, D), bool or byte
-                target_mask: torch.Tensor = None  # (B, L), bool or byte
-               ):
+    def forward(
+        self,
+        drug: torch.Tensor,           # (B, D, dim)
+        target: torch.Tensor,         # (B, L, dim)
+        drug_mask: torch.Tensor = None,   # (B, D), bool or byte
+        target_mask: torch.Tensor = None  # (B, L), bool or byte
+    ):
         # Optional LayerNorm on input
         if self.use_layernorm:
             drug = self.norm_drug(drug)
@@ -296,158 +299,3 @@ class MANnew(nn.Module):
             p = self.norm_p(p)
 
         return c, p, C.clone().detach()
-
-
-class BidirectionalCrossAttention(nn.Module):
-    """
-    A neural network module that implements bidirectional cross-attention between two input sequences.
-
-    Attributes:
-        - drug_norm: Layer normalization for the drug sequence.
-        - prot_norm: Layer normalization for the protein sequence.
-        - heads: Number of attention heads.
-        - scale: Scaling factor for attention scores.
-        - drug_to_qk: Linear layer for computing queries and keys for the drug sequence.
-        - prot_to_qk: Linear layer for computing queries and keys for the protein sequence.
-        - drug_to_v: Linear layer for computing values for the drug sequence.
-        - prot_to_v: Linear layer for computing values for the protein sequence.
-        - to_out: Linear layer for combining attention outputs for the drug sequence.
-        - prot_to_out: Linear layer for combining attention outputs for the protein sequence.
-        - pre_talking_heads: Optional talking heads mechanism before attention computation.
-        - post_talking_heads: Optional talking heads mechanism after attention computation for the drug sequence.
-        - post_prot_talking_heads: Optional talking heads mechanism after attention computation for the protein sequence.
-    """
-
-    def __init__(self, d_model, n_heads=4, dim_head=32, dropout=0.1, talking_heads=True):
-        """
-        Initializes the BidirectionalCrossAttention module.
-
-        :param drug_dim: Dimension of the drug sequence features.
-        :param prot_dim: Dimension of the protein sequence features.
-        :param n_heads: Number of attention heads.
-        :param dim_head: Dimension of each attention head.
-        :param dropout: Dropout rate for attention weights.
-        :param talking_heads: Whether to use talking heads mechanism.
-        :param prenorm: Whether to apply layer normalization before attention computation.
-        """
-        super().__init__()
-
-        self.drug_norm = nn.LayerNorm(d_model)
-        self.target_norm = nn.LayerNorm(d_model)
-
-        self.heads = n_heads
-        self.scale = (d_model // n_heads) ** -0.5
-        inner_dim = dim_head * n_heads
-
-        self.drug_attn_dropout = nn.Dropout(dropout)
-        self.target_attn_dropout = nn.Dropout(dropout)
-
-        self.drug_to_qk = nn.Linear(d_model, inner_dim, bias=False)
-        self.target_to_qk = nn.Linear(d_model, inner_dim, bias=False)
-
-        self.drug_to_v = nn.Linear(d_model, inner_dim, bias=False)
-        self.target_to_v = nn.Linear(d_model, inner_dim, bias=False)
-
-        self.to_out = nn.Linear(inner_dim, d_model)
-        self.target_to_out = nn.Linear(inner_dim, d_model)
-
-        self.pre_talking_heads = (
-            nn.Conv2d(n_heads, n_heads, 1, bias=False) if talking_heads else nn.Identity()
-        )
-        self.post_drug_talking_heads = (
-            nn.Conv2d(n_heads, n_heads, 1, bias=False) if talking_heads else nn.Identity()
-        )
-        self.post_target_talking_heads = (
-            nn.Conv2d(n_heads, n_heads, 1, bias=False) if talking_heads else nn.Identity()
-        )
-
-    def forward(
-        self,
-        drug: torch.Tensor,           # (B, D, dim)
-        target: torch.Tensor,         # (B, L, dim)
-        drug_mask: torch.Tensor = None,   # (B, D), bool or byte
-        target_mask: torch.Tensor = None  # (B, L), bool or byte
-        # return_attn: bool = False  # Whether to return attention weights
-    ):
-        # prenorm layer normalization
-        drug = self.drug_norm(drug)
-        target = self.target_norm(target)
-
-        # Compute queries, keys, and values
-        drug_qk, drug_v = self.drug_to_qk(drug), self.drug_to_v(drug)
-        target_qk, target_v = self.target_to_qk(target), self.target_to_v(target)
-
-        # Reshape for multi-head attention
-        drug_qk, target_qk, drug_v, target_v = map(
-            lambda t: rearrange(t, "b n (h d) -> b h n d", h=self.heads),
-            (drug_qk, target_qk, drug_v, target_v),
-        )
-
-        # Compute attention scores
-        sim = einsum("b h i d, b h j d -> b h i j", drug_qk, target_qk) * self.scale
-
-        # Apply pre-talking heads mechanism
-        sim = self.pre_talking_heads(sim)
-
-        # Apply masks
-        attn_mask = rearrange(drug_mask, "b i -> b 1 i 1") * rearrange(
-            target_mask, "b j -> b 1 1 j"
-        )
-        sim = sim.masked_fill(~attn_mask, -torch.finfo(sim.dtype).max)
-
-        # Compute attention weights
-        drug_attn = sim.softmax(dim=-1)
-        target_attn = sim.softmax(dim=-2)
-
-        # Apply dropout
-        drug_attn = self.drug_attn_dropout(drug_attn)
-        target_attn = self.target_attn_dropout(target_attn)
-
-        # Apply post-talking heads mechanism
-        drug_attn = self.post_drug_talking_heads(drug_attn)
-        target_attn = self.post_target_talking_heads(target_attn)
-
-        # Compute attention outputs
-        drug_out = einsum("b h i j, b h j d -> b h i d", drug_attn, target_v)
-        target_out = einsum("b h j i, b h j d -> b h i d", target_attn, drug_v)
-
-        # Reshape outputs and combine heads
-        drug_out, target_out = map(
-            lambda t: rearrange(t, "b h n d -> b n (h d)"), (drug_out, target_out)
-        )
-
-        drug_out = self.to_out(drug_out)
-        target_out = self.target_to_out(target_out)
-
-        # # Apply output dropout
-        # drug_out = self.drug_out_dropout(drug_out)
-        # prot_out = self.prot_out_dropout(prot_out)
-
-        # if return_attn:
-        #     return drug_out, target_out, drug_attn, target_attn
-
-        fused_feat = torch.cat([drug_out.mean(dim=1), target_out.mean(dim=1)], dim=-1)
-
-        return fused_feat
-
-
-class MultiModalAttentionalPooler(nn.Module):
-    def __init__(
-            self,
-            d_model: int,
-            context_dim: int,
-            n_head: int = 8,
-            n_queries: int = 256,
-    ):
-        super().__init__()
-        self.query = nn.Parameter(torch.empty(n_queries, d_model))
-        nn.init.normal_(self.query, mean=0, std=1/d_model**0.5)
-        self.attn = nn.MultiheadAttention(d_model, n_head, kdim=context_dim, vdim=context_dim, batch_first=True)
-        self.pool_attn_ln = nn.LayerNorm(d_model)
-
-    def forward(self, x: torch.Tensor):
-        N = x.shape[0]
-        q = self.query
-        out = self.attn(q.unsqueeze(0).expand(N, -1, -1), x, x, need_weights=False)[0]
-        out = self.pool_attn_ln(out)
-        return out

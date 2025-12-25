@@ -1,4 +1,7 @@
-""" NOTE: batch_size must be 1! """
+"""
+Modified from https://github.com/westlake-repl/SaProt
+NOTE: batch_size must be 1!
+"""
 from saprot.base import SaprotBaseModel
 from transformers import EsmTokenizer
 from utils import *
@@ -30,15 +33,12 @@ if __name__ == "__main__":
     model.to(device)
     print("Finish loading model.")
 
+    # MomeDTA
     cs_df = pd.read_csv(f'{root}/prots.csv')
     cs_list = list(set(zip(cs_df['prot_id'], cs_df['sa_seq'])))
 
     cs_list = select_undone_items(cs_list, output_dir)
-    # def infer_batch(seqs: list[str]) -> list[torch.Tensor]:
-    #     """
-    #     Input: list of sequences, e.g. ["MdEvVpQpLrVyQdYaKv", "MdEvVpQpLrVyQdYaKv"]
-    #     Output: list containing each sequence's embedding, each having the size of [seq_len, embed_dim]
-    #     """
+
     for idx, sa_seq in tqdm(cs_list):
         # seqs_batch = cs_list[idx : min(idx + batch_size, len(cs_list))]
         # embeddings = infer_batch([x[1] for x in seqs_batch])
@@ -46,10 +46,5 @@ if __name__ == "__main__":
         inputs = {k: v.to(device) for k, v in inputs.items()}
         with torch.no_grad():
             embed = model.get_hidden_states(inputs)#.last_hidden_state
-        # return outputs
-        # for seq_info, embedding in zip(seqs_batch, embeddings):
+
         torch.save(embed[0].clone().detach().cpu(), f'{output_dir}/{idx}.pt')
-
-    # def generate_SaProt_embeddings(cs_list: list[tuple[str, str]], output_dir: Path) -> None:
-
-    # generate_SaProt_embeddings(cs_list, output_dir)

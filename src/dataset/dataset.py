@@ -15,12 +15,7 @@ from src.utils.typedef import *
 
 @DATASET_REGISTRY.register()
 class DTADataset(Dataset):
-    """
-    Able to deal with data of the forms:
-        1) raw inputs before LLMs;
-        2) embeddings right after LLMs and before Projectors;
-        3) embeddings after Projectors.
-    """
+
     @configurable
     def __init__(self, cfg: DictConfig, stage: RunningStage | str):
         self.cfg = cfg

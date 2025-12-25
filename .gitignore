@@ -33,6 +33,7 @@ src/model/*
 !/src/model/basics.py
 !/src/model/fusion.py
 !/src/model/mgraph.py
+!/src/model/protgraph.py
 !/src/model/momedta.py
 
 src/module/criterion
@@ -41,12 +42,4 @@ src/utils/scheduler.py
 
 deepspeed*
 
-analysis/*
-!/analysis/case.ipynb
-!/analysis/logit_vs_gt.ipynb
-!/analysis/weight_stability.ipynb
-!/analysis/ablation.ipynb
-!/analysis/att_map.ipynb
-!/analysis/moe_weight.ipynb
-!/analysis/af3_pocket.ipynb
-!/analysis/data_analysis*.ipynb
+analysis

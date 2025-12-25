@@ -1,3 +1,7 @@
+"""
+Modified from https://github.com/guaguabujianle/MGraphDTA/blob/dev/regression/preprocessing.py
+"""
+
 import os.path as osp
 import pickle
 import torch
@@ -13,21 +17,6 @@ from utils import parse_arguments
 
 fdef_name = osp.join(RDConfig.RDDataDir, 'BaseFeatures.fdef')
 chem_feature_factory = ChemicalFeatures.BuildFeatureFactory(fdef_name)
-
-'''
-Note that training and test datasets are the same as GraphDTA
-Please see: https://github.com/thinng/GraphDTA
-'''
-
-VOCAB_PROTEIN = {"A": 1, "C": 2, "B": 3, "E": 4, "D": 5,
-                 "G": 6, "F": 7, "I": 8, "H": 9, "K": 10,
-                 "M": 11, "L": 12, "O": 13, "N": 14, "Q": 15,
-                 "P": 16, "S": 17, "R": 18, "U": 19, "T": 20,
-                 "W": 21, "V": 22, "Y": 23, "X": 24, "Z": 25}
-
-
-def seqs2int(target):
-    return [VOCAB_PROTEIN[s] for s in target]
 
 
 def process(root):

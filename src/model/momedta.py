@@ -6,7 +6,7 @@ from torch_geometric.data import Data
 from omegaconf import DictConfig
 
 from .module import *
-from .fusion import BANLayer, CAN_Layer, MAN, MANnew, BidirectionalCrossAttention
+from .fusion import BANLayer, CAN_Layer, MAN, MANnew
 from .basics import MLP, Projector, CNN_1D, Downsample_CNN
 from .mgraph import GraphNet
 from coach_pl.configuration import configurable
@@ -39,8 +39,8 @@ class FusePair(nn.Module):
             self.att_fuse = MAN(drug_hidden_dim=common_dim, protein_hidden_dim=common_dim)
         elif cfg.MODEL.FUSION == 'MANnew':
             self.att_fuse = MANnew(drug_hidden_dim=common_dim, protein_hidden_dim=common_dim)
-        elif cfg.MODEL.FUSION == 'BCA':
-            self.att_fuse = BidirectionalCrossAttention(d_model=common_dim, n_heads=4, dim_head=common_dim//4, dropout=0.1, talking_heads=True)
+        # elif cfg.MODEL.FUSION == 'BCA':
+        #     self.att_fuse = BidirectionalCrossAttention(d_model=common_dim, n_heads=4, dim_head=common_dim//4, dropout=0.1, talking_heads=True)
         
         if cfg.MODEL.ADD_POOL:
             self.bn = nn.LayerNorm(1024)
@@ -79,8 +79,8 @@ class FusePair(nn.Module):
         elif self.cfg.MODEL.FUSION == 'MANnew':
             c, p, att_map = self.att_fuse(drug_embed, prot_embed, drug_mask, prot_mask) #
             fused_feat = torch.cat([c, p], dim=-1)
-        elif self.cfg.MODEL.FUSION == 'BCA':
-            fused_feat = self.att_fuse(drug_embed, prot_embed, drug_mask, prot_mask)
+        # elif self.cfg.MODEL.FUSION == 'BCA':
+        #     fused_feat = self.att_fuse(drug_embed, prot_embed, drug_mask, prot_mask)
         
         if self.cfg.MODEL.ADD_POOL:
             h_pre = self.bn(self.linear_pre(torch.cat([drug_pool, prot_pool], dim=-1)))
@@ -96,6 +96,10 @@ class FusePair(nn.Module):
 
 
 class Gating(nn.Module):
+    """
+    Gating network to generate weights for each expert.
+    Written by Doubao AI and checked by authors.
+    """
     def __init__(self, num_experts=3, embed_dim=256):
         super().__init__()
         self.num_experts = num_experts
@@ -104,25 +108,25 @@ class Gating(nn.Module):
         self.embedding_fusion = nn.Sequential(
             nn.Linear(num_experts * embed_dim, embed_dim),
             nn.ReLU(),
-            nn.LayerNorm(embed_dim)  # 稳定训练
+            nn.LayerNorm(embed_dim)
         )
         
         self.weight_generator = nn.Sequential(
             nn.Linear(embed_dim, embed_dim * num_experts),
-            nn.Unflatten(1, (embed_dim, num_experts))  # 拆分维度
+            nn.Unflatten(1, (embed_dim, num_experts))
         )
     
     def forward(self, expert_embeddings: list[Tensor]):
         """
         Args:
-            expert_embeddings: 列表, 包含3个专家的嵌入, 每个形状为[batch_size, embed_dim]
+            expert_embeddings: list, each element of size [batch_size, embed_dim]
         Returns:
-            weights: 维度级权重，形状为[batch_size, embed_dim, num_experts]
+            weights: [batch_size, embed_dim, num_experts]
         """
         fused_emb = torch.cat(expert_embeddings, dim=1)  # [B, 3*E]
         gate_feat = self.embedding_fusion(fused_emb)  # [B, E]
         weights = self.weight_generator(gate_feat)  # [B, E, 3]
-        return torch.softmax(weights, dim=2)  # 每个维度上权重和为1
+        return torch.softmax(weights, dim=2)  # sum of weights = 1
 
 
 @MODEL_REGISTRY.register()

@@ -15,6 +15,7 @@ from coach_pl.configuration import configurable
 from coach_pl.model import MODEL_REGISTRY
 
 
+##### https://github.com/guaguabujianle/MGraphDTA/blob/dev/regression/model.py #####
 class Conv1dReLU(nn.Module):
     '''
     kernel_size=3, stride=1, padding=1
@@ -222,6 +223,7 @@ class GraphDenseNet(nn.Module):
         x = gnn.global_mean_pool(data.x, data.batch)
         x = self.classifer(x)
         return x
+###############################################################################
 
 
 @MODEL_REGISTRY.register()

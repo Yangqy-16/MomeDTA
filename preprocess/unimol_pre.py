@@ -1,3 +1,5 @@
+""" Fetched and modified from https://github.com/deepmodeling/Uni-Mol """
+
 # Copyright (c) DP Technology.
 # Copyright (c) Facebook, Inc. and its affiliates.
 #

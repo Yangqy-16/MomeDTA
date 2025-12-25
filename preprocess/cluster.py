@@ -112,6 +112,8 @@ def prot_cluster_split(df: pd.DataFrame, seq_col: str, target_threshold: float =
 
 def cluster_aware_kfold_split(df: pd.DataFrame, id_col: str, k: int = 5) -> pd.DataFrame:
     """
+    Written by Doubao AI and checked by authors.
+    
     按照聚类结果进行k折交叉验证分割
     
     参数:

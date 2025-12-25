@@ -1,4 +1,7 @@
-""" NOTE: batch_size must be 1! """
+"""
+Refer to https://huggingface.co/HUBioDataLab/SELFormer
+NOTE: batch_size must be 1!
+"""
 from utils import *
 from transformers import RobertaTokenizer, RobertaModel, RobertaConfig
 
