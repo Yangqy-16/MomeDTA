@@ -2,9 +2,9 @@ from subprocess import call
 import os
 
 ###### NOTE: Set params here! ######
-dataset = 'metz'
-setting = 'warm'
-fold = 0
+dataset = 'davis_iso'
+setting = 'novel_pair'
+fold = 1
 
 os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
